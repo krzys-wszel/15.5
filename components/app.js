@@ -9,42 +9,44 @@ App = React.createClass({
             gif: {}
         };
     },
-    handleSearch: function (searchingText) {
+    handleSearch: function(searchingText) {
         this.setState({
             loading: true
         });
-        this.getGif(searchingText, function (gif) {
-
-            this.setState({
-                loading: false,
-                gif: gif,
-                searchingText: searchingText
-            });
-        }.bind(this));
-    },
+        this.getGif(searchingText)
+            .then((gif) => {
+                this.setState({
+                    loading: false,
+                    gif: gif,
+                                       searchingText: searchingText
+                });
+            })
+            .catch(error => console.log(error));
+         },
     getGif: function (searchText) {
-        var url =
-            GIPHY_API_URL +
-            "/v1/gifs/random?api_key=" +
-            GIPHY_PUB_KEY +
-            "&tag=" +
-            searchText;
+        var url = GIPHY_API_URL + "/v1/gifs/random?api_key=" + GIPHY_PUB_KEY + "&tag=" +searchText;
         return new Promise(function (resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            xhr.onload = function () {
+                  var xhr = new XMLHttpRequest();
+            xhr.onload = function() {
                 if (xhr.status === 200) {
-                    resolve(xhr.response);
+                    var data = JSON.parse(xhr.responseText).data;
+                    var gif = {
+                        url: data.fixed_width_downsampled_url,
+                        sourceUrl: data.url
+                    };
+                    resolve(gif);
                 } else {
-                    reject(new Error(this.statusText));
+                    reject(new Error(xhr.status));
                 }
-            };
-            xhr.onerror = function () {
-                reject(new Error(`XMLHttpxhr Error: ${this.statusText}`));
-            };
-            xhr.open("GET", url);
+            }
+            xhr.open('GET', url);
             xhr.send();
-        });
+                   });
     },
+                        
+        
+        
+        
     render: function () {
         var styles = {
             margin: '0 auto',
